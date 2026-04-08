@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ChatSpark.Api/ChatSpark.Api.csproj" />
+  <Project Path="ChatSpark.Application/ChatSpark.Application.csproj" />
+  <Project Path="ChatSpark.Domain/ChatSpark.Domain.csproj" />
+  <Project Path="ChatSpark.Infrastructure/ChatSpark.Infrastructure.csproj" />
+  <Project Path="ChatSpark.Shared/ChatSpark.Shared.csproj" />
+</Solution>

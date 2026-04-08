@@ -1,0 +1,52 @@
+## [Visual Studio]
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## [Visual Studio Code]
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## [.NET / C#]
+# Build sonuçları
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bbin/
+obj/
+
+# NuGet paketleri
+*.nuget.props
+*.nuget.targets
+packages/
+
+# Test sonuçları
+TestResults/
+
+## [OS / IDE Specific]
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## [User-specific files]
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## [Environment Files]
+.env
+.env.*
+!.env.example
+
+## [Publish]
+publish/
