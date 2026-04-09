@@ -14,6 +14,8 @@ namespace ChatSpark.Infrastructure.Persistence
         public DbSet<Message> Messages { get; init; }
         public DbSet<Channel> Channels { get; init; }
 
+        public DbSet<RefreshToken> RefreshTokens { get; init; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
