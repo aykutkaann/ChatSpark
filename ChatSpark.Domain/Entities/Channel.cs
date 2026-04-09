@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Xml.Linq;
+﻿
 
 namespace ChatSpark.Domain.Entities
 {
@@ -39,21 +37,26 @@ namespace ChatSpark.Domain.Entities
 
         public void MakePrivate()
         {
-            if (IsArchived == false)
-                throw new InvalidOperationException();
+            if (IsArchived)
+                throw new InvalidOperationException("Cannot modify an archived channel.");
             IsPrivate = true;
         }
 
         public void MakePublic()
         {
+            if (IsArchived)
+                throw new InvalidOperationException("Cannot modify an archived channel.");
 
             IsPrivate = false;
         }
 
         public void Rename(string newName)
         {
+
+            if (IsArchived)
+                throw new InvalidOperationException("Cannot modify an archived channel.");
             if (string.IsNullOrWhiteSpace(newName))
-                throw new ArgumentException("Name cannot be emtpy.");
+                throw new ArgumentException("Name cannot be empty.");
             Name = newName;
         }
 
@@ -69,7 +72,8 @@ namespace ChatSpark.Domain.Entities
         public void UnArchive()
         {
             if (IsArchived == false)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Channel is not archived.");
+
 
             IsArchived = false;
 

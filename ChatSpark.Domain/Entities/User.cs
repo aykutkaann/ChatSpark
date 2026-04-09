@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-
+﻿
 namespace ChatSpark.Domain.Entities
 {
     public class User

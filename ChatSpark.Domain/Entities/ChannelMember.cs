@@ -1,8 +1,4 @@
-﻿using ChatSpark.Domain.Enum;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace ChatSpark.Domain.Entities
 {
     public class ChannelMember
