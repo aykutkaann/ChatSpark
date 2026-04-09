@@ -1,9 +1,6 @@
 ﻿using ChatSpark.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ChatSpark.Infrastructure.Persistence.Configurations
 {
@@ -11,7 +8,6 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.ToTable("users");
 
             builder.HasKey(u => u.Id);
 
@@ -21,7 +17,7 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
             builder.Property(u => u.DisplayName).IsRequired().HasMaxLength(100);
             builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(512);
             builder.Property(u => u.AvatarUrl).HasMaxLength(1024);
-            builder.Property(u => u.CreatedAt).HasColumnType("timestapmz").IsRequired();
+            builder.Property(u => u.CreatedAt).IsRequired();
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using ChatSpark.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ChatSpark.Infrastructure.Persistence.Configurations
 {
@@ -11,13 +8,12 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Workspace> builder)
         {
-            builder.ToTable("workspaces");
 
             builder.HasKey(w => w.Id);
 
             builder.Property(w => w.Name).IsRequired().HasMaxLength(100);
             builder.Property(w => w.Slug).IsRequired().HasMaxLength(50);
-            builder.Property(w => w.CreatedAt).IsRequired().HasColumnType("timestapmz");
+            builder.Property(w => w.CreatedAt).IsRequired();
 
             builder.HasIndex(w => w.Slug).IsUnique();
 
