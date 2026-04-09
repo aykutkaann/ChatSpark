@@ -4,6 +4,7 @@ using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Workspaces;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace ChatSpark.Api.Endpoints
@@ -16,7 +17,9 @@ namespace ChatSpark.Api.Endpoints
 
             group.MapPost("/", async (CreateWorkspaceRequest request, AppDbContext db, ClaimsPrincipal principal) =>
             {
-                var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdString = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+
                 if (!Guid.TryParse(userIdString, out var userId))
                 {
                     return Results.Unauthorized();
@@ -47,11 +50,12 @@ namespace ChatSpark.Api.Endpoints
 
             group.MapGet("/", async (ClaimsPrincipal principal, IDbConnectionFactory connection) =>
             {
-                var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdString = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
                 if (!Guid.TryParse(userIdString, out var userId))
                 {
                     return Results.Unauthorized();
                 }
+
 
 
                 const string sql = @"
@@ -71,8 +75,8 @@ namespace ChatSpark.Api.Endpoints
 
             group.MapPost("/join", async (JoinWorkspaceRequest request, ClaimsPrincipal principal, AppDbContext db) =>
             {
-                var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if(!Guid.TryParse(userIdString,out var userId))
+                var userIdString = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                if (!Guid.TryParse(userIdString,out var userId))
                 {
                     return Results.Unauthorized();
                 }
@@ -107,9 +111,9 @@ namespace ChatSpark.Api.Endpoints
 
             });
 
-            group.MapPost("/{id:guid}/leave", async (Guid workspaceId, ClaimsPrincipal principal, AppDbContext db) =>
+            group.MapPost("/{workspaceId:guid}/leave", async (Guid workspaceId, ClaimsPrincipal principal, AppDbContext db) =>
             {
-                var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdString = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
                 if (!Guid.TryParse(userIdString, out var userId))
                 {
                     return Results.Unauthorized();

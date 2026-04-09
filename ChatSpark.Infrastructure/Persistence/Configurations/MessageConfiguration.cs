@@ -17,7 +17,7 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
             builder.Property(m => m.ChannelId).IsRequired();
 
             builder.Property(m => m.SenderId).IsRequired();
-            builder.HasIndex(m => new { m.ChannelId, m.SentAt });
+            builder.HasIndex(m => new { m.ChannelId, m.SentAt }).IsDescending(false, true);
 
 
             builder.Property(m => m.SentAt).IsRequired();

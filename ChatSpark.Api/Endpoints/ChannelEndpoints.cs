@@ -4,7 +4,9 @@ using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Channels;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Principal;
 
 
 namespace ChatSpark.Api.Endpoints
@@ -19,10 +21,11 @@ namespace ChatSpark.Api.Endpoints
             group.MapPost("/", async (
                 Guid workspaceId,
                 CreateChannelRequest request,
-                ClaimsPrincipal pricipal,
+                ClaimsPrincipal principal,
                 AppDbContext db) =>
             {
-                var userId = Guid.Parse(pricipal.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+);
 
                 var membership = await db.WorkspaceMembers
                     .FirstOrDefaultAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId);
@@ -34,7 +37,7 @@ namespace ChatSpark.Api.Endpoints
                 }
 
 
-                var nameExists = await db.Channels.AnyAsync(c => c.WorkspaceId == workspaceId && c.Name == request.Name);
+                var nameExists = await db.Channels.AnyAsync(c => c.WorkspaceId == workspaceId && c.Name.ToLower() == request.Name.ToLower());
                 if (nameExists)
                     return Results.Conflict("This channel name is already taken");
 
@@ -50,23 +53,31 @@ namespace ChatSpark.Api.Endpoints
 
                 await db.SaveChangesAsync();
 
-                return Results.Created($"/channels/{channel.Id}", new ChannelResponse(
+                return Results.Created($"/api/workspaces/{workspaceId}/channels/{channel.Id}", new ChannelResponse(
                     channel.Id,
                     channel.WorkspaceId,
                     channel.Name,
                     channel.IsPrivate,
                     channel.IsArchived,
-                    DateTime.UtcNow));
+                    channel.CreatedAt));
             });
 
 
-            group.MapGet("/api/workspaces/{workspaceId:guid}/channels", async (
+            group.MapGet("/", async (
                 Guid workspaceId,
                 IDbConnectionFactory connectionFactory,
-                ClaimsPrincipal userClaims) =>
+                ClaimsPrincipal principal,
+                AppDbContext db) =>
             {
-                var userId = Guid.Parse(userClaims.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
+                var isWorkspaceMember = await db.WorkspaceMembers
+                        .AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId);
+
+                if (!isWorkspaceMember)
+                {
+                    return Results.Forbid(); 
+                }
                 const string sql = @"
                                 SELECT c.id, c.workspace_id, c.name, c.is_private, c.is_archived, c.created_at
                                 FROM channels c
@@ -89,7 +100,7 @@ namespace ChatSpark.Api.Endpoints
 
             group.MapPost("/{channelId:guid}/archive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal) =>
             {
-                var userId = Guid.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
                 var channel = await db.Channels.FindAsync(channelId);
                 if (channel is null) return Results.NotFound();
@@ -111,7 +122,7 @@ namespace ChatSpark.Api.Endpoints
 
             group.MapPost("/{channelId:guid}/unarchive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal) =>
             {
-                var userId = Guid.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
                 var channel = await db.Channels.FindAsync(channelId);
                 if (channel is null) return Results.NotFound();

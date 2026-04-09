@@ -48,6 +48,7 @@ builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
 builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
 
+Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 //Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -64,6 +65,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
             ClockSkew = TimeSpan.FromSeconds(30)  
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = ctx =>
+            {
+                Log.Warning("JWT auth failed: {Error}", ctx.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnChallenge = ctx =>
+            {
+                Log.Warning("JWT challenge: {Error} {Description}", ctx.Error, ctx.ErrorDescription);
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = ctx =>
+            {
+                Log.Information("JWT header present: {HasAuth}", ctx.Request.Headers.ContainsKey("Authorization"));
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 
@@ -71,6 +91,8 @@ builder.Services.AddAuthorization();
 
 
 // Swagger
+builder.Services.AddEndpointsApiExplorer();   
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -143,6 +165,7 @@ app.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new
 app.MapAuthEndpoints();
 app.MapWorkspaceEndpoints();
 app.MapChannelEndpoints();
+app.MapMessageEndpoints();
 
 app.Run();
 
