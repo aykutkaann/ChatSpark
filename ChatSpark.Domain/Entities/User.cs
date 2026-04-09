@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace ChatSpark.Domain.Entities
@@ -7,9 +6,9 @@ namespace ChatSpark.Domain.Entities
     public class User
     {
         public Guid Id { get; private set; }
-        public string Email { get; private set; }
-        public string DisplayName { get; private set; }
-        public string PasswordHash { get; private set; }
+        public string Email { get; private set; } = null!;
+        public string DisplayName { get; private set; } = null!;
+        public string PasswordHash { get; private set; } = null!;
         public string? AvatarUrl { get; private set; }
         public DateTime CreatedAt { get; private set; }
 
@@ -50,6 +49,8 @@ namespace ChatSpark.Domain.Entities
 
         public void UpdateAvatar(string url)
         {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException("Url cannot be empty.");
             AvatarUrl = url;
         }
 

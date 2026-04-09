@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace ChatSpark.Domain.Entities
@@ -10,7 +9,7 @@ namespace ChatSpark.Domain.Entities
         public Guid ChannelId { get;private set; }
         public Guid SenderId { get;private set; } //User
 
-        public string Content { get;private set; }
+        public string Content { get;private set; } = null!;
         public DateTime SentAt { get; private set; }
         public DateTime? EditedAt { get;private set; }
 

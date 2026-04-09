@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
+using System.Xml.Linq;
 
 namespace ChatSpark.Domain.Entities
 {
@@ -8,8 +8,8 @@ namespace ChatSpark.Domain.Entities
         public Guid Id { get; private set; }
         public Guid OwnerId { get; private set; } //User
 
-        public string Name { get;private set; }
-        public string Slug { get; private set; }
+        public string Name { get;private set; } = null!;
+        public string Slug { get; private set; } = null!;
 
         public DateTime CreatedAt { get;private set; }
 
@@ -21,7 +21,7 @@ namespace ChatSpark.Domain.Entities
         {
 
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name cannot be emtpy.");
+                throw new ArgumentException("Name cannot be empty.");
             if (string.IsNullOrWhiteSpace(slug) || slug.Any(char.IsWhiteSpace) || slug.Any(char.IsUpper) )
                 throw new ArgumentException("Slug must be lowercase and contain no spaces.");
 
@@ -39,6 +39,8 @@ namespace ChatSpark.Domain.Entities
 
         public void Rename(string newName)
         {
+            if (string.IsNullOrWhiteSpace(newName))
+                throw new ArgumentException("Name cannot be emtpy.");
             Name = newName;
         }
     }

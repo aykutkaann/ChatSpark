@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ChatSpark.Domain.Entities
 {
@@ -9,7 +9,7 @@ namespace ChatSpark.Domain.Entities
         public Guid Id { get;private set; }
         public Guid WorkspaceId { get; private set; }
 
-        public string Name { get;private set; }
+        public string Name { get;private set; } = null!;
         public bool IsPrivate { get; private set; }
         public DateTime CreatedAt { get;private set; }
 
@@ -48,6 +48,8 @@ namespace ChatSpark.Domain.Entities
 
         public void Rename(string newName)
         {
+            if (string.IsNullOrWhiteSpace(newName))
+                throw new ArgumentException("Name cannot be emtpy.");
             Name = newName;
         }
 
