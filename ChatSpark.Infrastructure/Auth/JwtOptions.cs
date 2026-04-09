@@ -1,9 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ChatSpark.Infrastructure.Auth
+﻿namespace ChatSpark.Infrastructure.Auth
 {
     public class JwtOptions 
     {
@@ -12,7 +7,7 @@ namespace ChatSpark.Infrastructure.Auth
         public string SigningKey { get; init; } = string.Empty;
         public string Issuer { get; init; } = string.Empty;
         public string Audience { get; init; } = string.Empty;
-        public int ExpiryMinutes { get; init; }
-        public int RefreshTokenExpiryDays { get; init; } 
+        public int AccessTokenMinutes { get; init; }
+        public int RefreshTokenDays { get; init; } 
     }
 }

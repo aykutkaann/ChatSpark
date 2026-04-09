@@ -1,3 +1,4 @@
+using ChatSpark.Api.Endpoints;
 using ChatSpark.Application.Abstractions;
 using ChatSpark.Infrastructure.Auth;
 using ChatSpark.Infrastructure.Persistence;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,5 +84,13 @@ app.MapGet("/health/db", async (AppDbContext context) =>
     }
 });
 
+app.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new
+{
+    Id = user.FindFirst("sub")?.Value,
+    Email = user.FindFirst("email")?.Value
+})).RequireAuthorization();
+
+
+app.MapAuthEndpoints();
 app.Run();
 

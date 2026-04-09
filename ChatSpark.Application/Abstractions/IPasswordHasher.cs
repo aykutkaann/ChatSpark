@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ChatSpark.Application.Abstractions
+﻿namespace ChatSpark.Application.Abstractions
 {
     public interface IPasswordHasher
     {
