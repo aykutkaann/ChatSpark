@@ -16,6 +16,7 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
             builder.HasIndex(c => new { c.WorkspaceId, c.Name }).IsUnique();
 
             builder.Property(c => c.CreatedAt).IsRequired();
+            builder.Property(c => c.IsArchived).IsRequired();
 
             builder.HasOne<Workspace>()
                 .WithMany()

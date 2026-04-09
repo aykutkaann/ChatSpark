@@ -11,6 +11,7 @@ namespace ChatSpark.Domain.Entities
 
         public string Name { get;private set; } = null!;
         public bool IsPrivate { get; private set; }
+        public bool IsArchived { get; private set; }
         public DateTime CreatedAt { get;private set; }
 
 
@@ -38,11 +39,14 @@ namespace ChatSpark.Domain.Entities
 
         public void MakePrivate()
         {
+            if (IsArchived == false)
+                throw new InvalidOperationException();
             IsPrivate = true;
         }
 
         public void MakePublic()
         {
+
             IsPrivate = false;
         }
 
@@ -51,6 +55,24 @@ namespace ChatSpark.Domain.Entities
             if (string.IsNullOrWhiteSpace(newName))
                 throw new ArgumentException("Name cannot be emtpy.");
             Name = newName;
+        }
+
+        public void Archive()
+        {
+            if (IsArchived == true)
+                throw new InvalidOperationException("Channel is already archived.");
+
+            IsArchived = true;
+
+        }
+
+        public void UnArchive()
+        {
+            if (IsArchived == false)
+                throw new InvalidOperationException();
+
+            IsArchived = false;
+
         }
 
 
