@@ -17,6 +17,10 @@ namespace ChatSpark.Infrastructure.Persistence
         public DbSet<RefreshToken> RefreshTokens { get; init; }
 
 
+        public DbSet<WorkspaceMember> WorkspaceMembers { get; init; }
+        public DbSet<ChannelMember> ChannelMembers { get; init; }
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
