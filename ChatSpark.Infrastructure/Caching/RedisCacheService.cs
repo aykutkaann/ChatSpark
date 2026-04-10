@@ -43,5 +43,16 @@ namespace ChatSpark.Infrastructure.Caching
         {
             await _db.KeyDeleteAsync(key);
         }
+
+        public async Task RemoveByPrefixAsync(string prefix, CancellationToken ct = default)
+        {
+            var server = _db.Multiplexer.GetServer(_db.Multiplexer.GetEndPoints().First());
+
+            var keys = server.Keys(pattern: $"{prefix}*").ToArray();
+
+            if (keys.Length > 0)
+                await _db.KeyDeleteAsync(keys);
+        }
+
     }
 }

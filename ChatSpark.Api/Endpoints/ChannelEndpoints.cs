@@ -5,10 +5,8 @@ using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Channels;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Principal;
 
 
 namespace ChatSpark.Api.Endpoints
@@ -24,7 +22,8 @@ namespace ChatSpark.Api.Endpoints
                 Guid workspaceId,
                 CreateChannelRequest request,
                 ClaimsPrincipal principal,
-                AppDbContext db) =>
+                AppDbContext db,
+                ICacheService service) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
 );
@@ -54,6 +53,9 @@ namespace ChatSpark.Api.Endpoints
                 }
 
                 await db.SaveChangesAsync();
+
+                await service.RemoveByPrefixAsync($"channels:{workspaceId}:");
+
 
                 return Results.Created($"/api/workspaces/{workspaceId}/channels/{channel.Id}", new ChannelResponse(
                     channel.Id,
@@ -114,7 +116,7 @@ namespace ChatSpark.Api.Endpoints
                 return Results.Ok(channels);
             });
 
-            group.MapPost("/{channelId:guid}/archive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal) =>
+            group.MapPost("/{channelId:guid}/archive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal, ICacheService service) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
@@ -131,12 +133,15 @@ namespace ChatSpark.Api.Endpoints
 
                 await db.SaveChangesAsync();
 
+                await service.RemoveByPrefixAsync($"channels:{channel.WorkspaceId}:");
+
+
                 return Results.NoContent();
 
 
             });
 
-            group.MapPost("/{channelId:guid}/unarchive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal) =>
+            group.MapPost("/{channelId:guid}/unarchive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal, ICacheService service) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
@@ -153,6 +158,9 @@ namespace ChatSpark.Api.Endpoints
                 channel.UnArchive();
 
                 await db.SaveChangesAsync();
+
+                await service.RemoveByPrefixAsync($"channels:{channel.WorkspaceId}:");
+
 
                 return Results.NoContent();
             });
