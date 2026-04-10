@@ -50,10 +50,13 @@ namespace ChatSpark.Domain.Entities
         }
         public void Delete(Guid editorId)
         {
+            if (DeletedAt is not null)
+                throw new InvalidOperationException("Message is already deleted.");
             if (!CanBeEditedBy(editorId))
                 throw new InvalidOperationException("Only the sender can delete this message.");
-
+            
             DeletedAt = DateTime.UtcNow;
+
  
         }
         public bool CanBeEditedBy(Guid userId) => SenderId == userId;

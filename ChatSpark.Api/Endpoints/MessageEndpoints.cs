@@ -52,7 +52,8 @@ namespace ChatSpark.Api.Endpoints
                             messages.SenderId,
                             messages.Content,
                             messages.SentAt,
-                            messages.EditedAt));
+                            messages.EditedAt,
+                            messages.DeletedAt));
 
                 return Results.Created($"/api/channels/{channelId}/messages/{messages.Id}", new MessageResponse(
                     messages.Id,
@@ -60,7 +61,8 @@ namespace ChatSpark.Api.Endpoints
                     messages.SenderId,
                     messages.Content,
                     messages.SentAt,
-                    messages.EditedAt));
+                    messages.EditedAt,
+                    messages.DeletedAt));
 
             });
 
@@ -148,9 +150,13 @@ namespace ChatSpark.Api.Endpoints
                     message.SenderId,
                     message.Content,
                     message.SentAt,
-                    message.EditedAt);
+                    message.EditedAt,
+                    message.DeletedAt);
 
-                await hubContext.Clients.Groups(channelId.ToString()).SendAsync("MessageEdited", response);
+                await hubContext.Clients.Group(channelId.ToString()).SendAsync("MessageEdited", response);
+
+                if (message.DeletedAt is not null) return Results.NotFound("Message not found.");
+
 
                 return Results.Ok(response);
 
@@ -167,13 +173,22 @@ namespace ChatSpark.Api.Endpoints
 
                 if (message.ChannelId != channelId) return Results.NotFound("Message and Channel is not match");
 
-                if (message.SenderId != userId) return Results.BadRequest("You can only delete your own messages,");
 
-                db.Messages.Remove(message);
-
+                try
+                {
+                    message.Delete(userId);
+                }
+                catch (InvalidOperationException)
+                {
+                    return Results.Forbid();
+                }
+    
                 await db.SaveChangesAsync();
 
-                await hubContext.Clients.Groups(channelId.ToString()).SendAsync("MessageDeleted", messageId);
+                await hubContext.Clients.Group(channelId.ToString()).SendAsync("MessageDeleted", messageId);
+
+                if (message.DeletedAt is not null) return Results.NotFound("Message not found.");
+
 
                 return Results.NoContent();
 
