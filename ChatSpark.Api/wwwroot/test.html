@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+<body>
+    <input id="token" placeholder="paste JWT" />
+    <input id="channelId" placeholder="channel GUID" />
+    <button onclick="connect()">Connect</button>
+    <button onclick="join()">Join</button>
+    <button onclick="leave()">Leave</button>
+<pre id="log"></pre>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8/dist/browser/signalr.min.js"></script>
+    <script>
+let conn;
+const log = m => document.getElementById('log').textContent += m + '\n';
+
+async function connect() {
+  const token = document.getElementById('token').value;
+  conn = new signalR.HubConnectionBuilder()
+    .withUrl('/hubs/chat', { accessTokenFactory: () => token })
+    .build();
+  conn.on('MessageReceived', m => log('MSG: ' + JSON.stringify(m)));
+  await conn.start();
+  log('connected');
+}
+async function join() {
+  await conn.invoke('JoinChannel', document.getElementById('channelId').value);
+  log('joined');
+}
+async function leave() {
+  await conn.invoke('LeaveChannel', document.getElementById('channelId').value);
+  log('left');
+}
+    </script>
+</body>
+</html>

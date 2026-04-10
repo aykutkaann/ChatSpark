@@ -1,4 +1,5 @@
 using ChatSpark.Api.Endpoints;
+using ChatSpark.Api.Hubs;
 using ChatSpark.Application.Abstractions;
 using ChatSpark.Infrastructure.Auth;
 using ChatSpark.Infrastructure.Persistence;
@@ -80,12 +81,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             },
             OnMessageReceived = ctx =>
             {
+                var accessToken = ctx.Request.Query["access_token"];
+                var path = ctx.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    ctx.Token = accessToken;
+                }
+
                 Log.Information("JWT header present: {HasAuth}", ctx.Request.Headers.ContainsKey("Authorization"));
                 return Task.CompletedTask;
             }
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
+
 
 
 
@@ -134,6 +145,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -165,6 +178,9 @@ app.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new
 app.MapAuthEndpoints();
 app.MapWorkspaceEndpoints();
 app.MapChannelEndpoints();
+
+app.MapHub<ChatHub>("/hubs/chat");
+
 app.MapMessageEndpoints();
 
 app.Run();

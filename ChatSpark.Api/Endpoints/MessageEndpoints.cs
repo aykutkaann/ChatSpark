@@ -1,7 +1,9 @@
-﻿using ChatSpark.Domain.Entities;
+﻿using ChatSpark.Api.Hubs;
+using ChatSpark.Domain.Entities;
 using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Messages;
 using Dapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,7 +17,7 @@ namespace ChatSpark.Api.Endpoints
             var group = routes.MapGroup("/api/channels/{channelId:guid}/messages").RequireAuthorization().WithTags("Messages");
 
 
-            group.MapPost("/", async (Guid channelId, SendMessageRequest request, AppDbContext db, ClaimsPrincipal principal) =>
+            group.MapPost("/", async (Guid channelId, SendMessageRequest request, AppDbContext db, ClaimsPrincipal principal, IHubContext<ChatHub> hub) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
@@ -41,6 +43,16 @@ namespace ChatSpark.Api.Endpoints
                 db.Messages.Add(messages);
 
                 await db.SaveChangesAsync();
+
+
+                await hub.Clients.Group(channelId.ToString())
+                        .SendAsync("MessageREceived", new MessageResponse(
+                            messages.Id,
+                            messages.ChannelId,
+                            messages.SenderId,
+                            messages.Content,
+                            messages.SentAt,
+                            messages.EditedAt));
 
                 return Results.Created($"/api/channels/{channelId}/messages/{messages.Id}", new MessageResponse(
                     messages.Id,
