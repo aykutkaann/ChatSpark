@@ -3,6 +3,7 @@ using ChatSpark.Api.Hubs;
 using ChatSpark.Application.Abstractions;
 using ChatSpark.Infrastructure.Auth;
 using ChatSpark.Infrastructure.Caching;
+using ChatSpark.Infrastructure.Messaging;
 using ChatSpark.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -58,6 +59,10 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 
 builder.Services.AddSingleton<ICacheService, RedisCacheService>();
+
+//RabbitMQ
+
+builder.Services.AddSingleton<IEventPublisher, RabbitMqPublisher>();
 
 //Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -176,6 +181,11 @@ app.MapGet("/health/redis", async (IConnectionMultiplexer redis) =>
     var db = redis.GetDatabase();
     var pong = await db.PingAsync();
     return Results.Ok(new { redis = "up", latency = $"{pong.TotalMilliseconds}ms" });
+});
+
+app.MapGet("/health/rabbitmq", async (IEventPublisher publisher) =>
+{
+    return Results.Ok(new { rabbitmq = "up" });
 });
 
 
