@@ -12,6 +12,8 @@ namespace ChatSpark.Shared.Dtos.Messages
         Guid SenderId,
         string Content,
         DateTime SentAt,
-        DateTime? EditedAt);
+        DateTime? EditedAt,
+        DateTime? DeletedAt);
+    public record EditMessageRequest(string Content);
 
 }

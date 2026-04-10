@@ -95,9 +95,10 @@ namespace ChatSpark.Api.Endpoints
                 var effectiveLimit = Math.Clamp(limit ?? 50, 1, 100);
 
                 const string sql = @"
-                                SELECT id, channel_id, sender_id, content, sent_at, edited_at
+                                SELECT id, channel_id, sender_id, content, sent_at, edited_at, deleted_at
                                 FROM messages
                                 WHERE channel_id = @ChannelId 
+                                  AND deleted_at IS NUL
                                   AND (@Before::timestamptz IS NULL OR sent_at < @Before::timestamptz)
                                 ORDER BY sent_at DESC
                                 LIMIT @Limit;";
@@ -112,6 +113,71 @@ namespace ChatSpark.Api.Endpoints
                 });
 
                 return Results.Ok(messages);
+
+            });
+
+
+            group.MapPatch("/{messageId:guid}", async (Guid channelId, EditMessageRequest request, 
+                Guid messageId, ClaimsPrincipal principal, IHubContext<ChatHub> hubContext, AppDbContext db) => 
+            {
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+
+                var message = await db.Messages.FindAsync(messageId);
+                if (message is null) return Results.NotFound("Message not found.");
+
+                if (message.ChannelId != channelId) return Results.NotFound("Message and Channel is not match");
+
+                try
+                {
+                    message.Edit(request.Content, userId);
+                }
+                catch (InvalidOperationException)
+                {
+                    return Results.Forbid();
+                }
+                catch (ArgumentException err)
+                {
+                    return Results.BadRequest(err.Message);
+                }
+
+                await db.SaveChangesAsync();
+
+                var response = new MessageResponse(
+                    message.Id,
+                    message.ChannelId,
+                    message.SenderId,
+                    message.Content,
+                    message.SentAt,
+                    message.EditedAt);
+
+                await hubContext.Clients.Groups(channelId.ToString()).SendAsync("MessageEdited", response);
+
+                return Results.Ok(response);
+
+
+            });
+
+            group.MapDelete("/{messageId:guid}", async (Guid channelId, Guid messageId, AppDbContext db,
+                ClaimsPrincipal principal, IHubContext<ChatHub> hubContext) =>
+            {
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+
+                var message = await db.Messages.FindAsync(messageId);
+                if (message is null) return Results.NotFound("Message not found.");
+
+                if (message.ChannelId != channelId) return Results.NotFound("Message and Channel is not match");
+
+                if (message.SenderId != userId) return Results.BadRequest("You can only delete your own messages,");
+
+                db.Messages.Remove(message);
+
+                await db.SaveChangesAsync();
+
+                await hubContext.Clients.Groups(channelId.ToString()).SendAsync("MessageDeleted", messageId);
+
+                return Results.NoContent();
+
+
 
             });
         }

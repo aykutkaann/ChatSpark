@@ -22,6 +22,8 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
 
             builder.Property(m => m.SentAt).IsRequired();
             builder.Property(m => m.EditedAt).IsRequired(false);
+            builder.Property(m => m.DeletedAt).IsRequired(false);
+
 
             builder.HasOne<Channel>()
                 .WithMany()

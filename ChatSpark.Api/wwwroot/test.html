@@ -18,7 +18,10 @@ async function connect() {
   conn = new signalR.HubConnectionBuilder()
     .withUrl('/hubs/chat', { accessTokenFactory: () => token })
     .build();
-  conn.on('MessageReceived', m => log('MSG: ' + JSON.stringify(m)));
+    conn.on('MessageReceived', m => log('MSG: ' + JSON.stringify(m)));
+    conn.on('MessageEdited', m => log('EDITED: ' + JSON.stringify(m)));
+    conn.on('MessageDeleted', m => log('DELETED: ' + JSON.stringify(m)));
+
   await conn.start();
   log('connected');
 }

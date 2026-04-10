@@ -11,6 +11,7 @@ namespace ChatSpark.Domain.Entities
         public string Content { get;private set; } = null!;
         public DateTime SentAt { get; private set; }
         public DateTime? EditedAt { get;private set; }
+        public DateTime? DeletedAt { get; private set; }
 
         private Message() { }
 
@@ -46,6 +47,14 @@ namespace ChatSpark.Domain.Entities
 
             Content = newContent;
             EditedAt = DateTime.UtcNow;
+        }
+        public void Delete(Guid editorId)
+        {
+            if (!CanBeEditedBy(editorId))
+                throw new InvalidOperationException("Only the sender can delete this message.");
+
+            DeletedAt = DateTime.UtcNow;
+ 
         }
         public bool CanBeEditedBy(Guid userId) => SenderId == userId;
 
