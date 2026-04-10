@@ -1,9 +1,11 @@
-﻿using ChatSpark.Domain.Entities;
+﻿using ChatSpark.Application.Abstractions;
+using ChatSpark.Domain.Entities;
 using ChatSpark.Domain.Enum;
 using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Channels;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -67,7 +69,8 @@ namespace ChatSpark.Api.Endpoints
                 Guid workspaceId,
                 IDbConnectionFactory connectionFactory,
                 ClaimsPrincipal principal,
-                AppDbContext db) =>
+                AppDbContext db,
+                ICacheService service) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
 
@@ -78,6 +81,16 @@ namespace ChatSpark.Api.Endpoints
                 {
                     return Results.Forbid(); 
                 }
+
+                var cacheKey = $"channels:{workspaceId}:{userId}";
+
+                var cachedChannels = await service.GetAsync<List<ChannelResponse>>(cacheKey);
+
+                if(cachedChannels is not null)
+                {
+                    return Results.Ok(cachedChannels);
+                }
+
                 const string sql = @"
                                 SELECT c.id, c.workspace_id, c.name, c.is_private, c.is_archived, c.created_at
                                 FROM channels c
@@ -94,6 +107,9 @@ namespace ChatSpark.Api.Endpoints
 
                 using var conn = await connectionFactory.CreateAsync();
                 var channels = await conn.QueryAsync<ChannelResponse>(sql, new { WorkspaceId = workspaceId, UserId = userId });
+
+
+                await service.SetAsync(cacheKey, channels, TimeSpan.FromMinutes(5));
 
                 return Results.Ok(channels);
             });

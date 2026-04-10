@@ -2,6 +2,7 @@ using ChatSpark.Api.Endpoints;
 using ChatSpark.Api.Hubs;
 using ChatSpark.Application.Abstractions;
 using ChatSpark.Infrastructure.Auth;
+using ChatSpark.Infrastructure.Caching;
 using ChatSpark.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -11,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
+using StackExchange.Redis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -50,6 +52,12 @@ builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+// Redis
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 
 //Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -95,7 +103,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
-builder.Services.AddSignalR();
+
+//SignalR
+builder.Services.AddSignalR().AddStackExchangeRedis(builder.Configuration.GetConnectionString("Redis")!);
 
 
 
@@ -154,25 +164,19 @@ app.UseAuthorization();
 
 //Endpoints
 
-app.MapGet("/health/db", async (AppDbContext context) =>
-{
-    var connection =  await context.Database.CanConnectAsync();
-
-    if (connection)
-    {
-        return Results.Ok(new { database = "up" });
-    }
-    else 
-    {
-        return Results.Json(new { database = "down" }, statusCode: 500);
-    }
-});
 
 app.MapGet("/me", (ClaimsPrincipal user) => Results.Ok(new
 {
     Id = user.FindFirst("sub")?.Value,
     Email = user.FindFirst("email")?.Value
 })).RequireAuthorization();
+
+app.MapGet("/health/redis", async (IConnectionMultiplexer redis) =>
+{
+    var db = redis.GetDatabase();
+    var pong = await db.PingAsync();
+    return Results.Ok(new { redis = "up", latency = $"{pong.TotalMilliseconds}ms" });
+});
 
 
 app.MapAuthEndpoints();
