@@ -179,7 +179,7 @@ Workspace
 ### Option 1: Docker Compose (full stack)
 
 ```bash
-git clone https://github.com/your-username/ChatSpark.git
+git clone https://github.com/aykutkaann/ChatSpark.git
 cd ChatSpark
 docker compose up --build
 ```
