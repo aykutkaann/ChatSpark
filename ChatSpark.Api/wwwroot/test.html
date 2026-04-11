@@ -6,33 +6,46 @@
     <button onclick="connect()">Connect</button>
     <button onclick="join()">Join</button>
     <button onclick="leave()">Leave</button>
+    <button onclick="startTyping()">Start Typing</button>
+    <button onclick="stopTyping()">Stop Typing</button>
+
 <pre id="log"></pre>
 
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8/dist/browser/signalr.min.js"></script>
     <script>
-let conn;
-const log = m => document.getElementById('log').textContent += m + '\n';
+        let conn;
+        const log = m => document.getElementById('log').textContent += m + '\n';
 
-async function connect() {
-  const token = document.getElementById('token').value;
-  conn = new signalR.HubConnectionBuilder()
-    .withUrl('/hubs/chat', { accessTokenFactory: () => token })
-    .build();
-    conn.on('MessageReceived', m => log('MSG: ' + JSON.stringify(m)));
-    conn.on('MessageEdited', m => log('EDITED: ' + JSON.stringify(m)));
-    conn.on('MessageDeleted', m => log('DELETED: ' + JSON.stringify(m)));
+        async function connect() {
+            const token = document.getElementById('token').value;
+            conn = new signalR.HubConnectionBuilder()
+                .withUrl('/hubs/chat', { accessTokenFactory: () => token })
+                .build();
+            conn.on('MessageReceived', m => log('MSG: ' + JSON.stringify(m)));
+            conn.on('MessageEdited', m => log('EDITED: ' + JSON.stringify(m)));
+            conn.on('MessageDeleted', m => log('DELETED: ' + JSON.stringify(m)));
+            conn.on('UserStartedTyping', d => log('TYPING: ' + d.userId));
+            conn.on('UserStoppedTyping', d => log('STOPPED TYPING: ' + d.userId));
 
-  await conn.start();
-  log('connected');
-}
-async function join() {
-  await conn.invoke('JoinChannel', document.getElementById('channelId').value);
-  log('joined');
-}
-async function leave() {
-  await conn.invoke('LeaveChannel', document.getElementById('channelId').value);
-  log('left');
-}
+            async function startTyping() {
+                await conn.invoke('StartTyping', document.getElementById('channelId').value);
+            }
+            async function stopTyping() {
+                await conn.invoke('StopTyping', document.getElementById('channelId').value);
+            }
+
+
+            await conn.start();
+            log('connected');
+        }
+        async function join() {
+            await conn.invoke('JoinChannel', document.getElementById('channelId').value);
+            log('joined');
+        }
+        async function leave() {
+            await conn.invoke('LeaveChannel', document.getElementById('channelId').value);
+            log('left');
+        }
     </script>
 </body>
 </html>

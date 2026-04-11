@@ -101,5 +101,18 @@ namespace ChatSpark.Api.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
+        public async Task StartTyping(Guid channelId)
+        {
+            var userId = GetUserId();
+            await Clients.OthersInGroup(channelId.ToString()).SendAsync("UserStartedTyping", new { userId, channelId });
+        }
+
+        public async Task StopTyping(Guid channelId)
+        {
+            var userId = GetUserId();
+
+            await Clients.OthersInGroup(channelId.ToString()).SendAsync("UserStoppedTyping", new { userId, channelId });
+        }
+
     }
 }
