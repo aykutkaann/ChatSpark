@@ -60,6 +60,29 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatspark-api
+    ports:
+      - "8080:8080"
+    networks:
+      - chatspark-net
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  
+
 
 networks:
   chatspark-net:

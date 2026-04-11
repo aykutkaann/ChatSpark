@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path="appsettings.Docker.json" />
+    <File Path="Dockerfile" />
+  </Folder>
   <Project Path="ChatSpark.Api/ChatSpark.Api.csproj" />
   <Project Path="ChatSpark.Application/ChatSpark.Application.csproj" />
   <Project Path="ChatSpark.Domain/ChatSpark.Domain.csproj" />
