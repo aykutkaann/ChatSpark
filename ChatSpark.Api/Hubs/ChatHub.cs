@@ -1,16 +1,22 @@
-﻿using ChatSpark.Infrastructure.Persistence;
+﻿using ChatSpark.Domain.Entities;
+using ChatSpark.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace ChatSpark.Api.Hubs
 {
 
     [Authorize]
-    public class ChatHub(AppDbContext db) :Hub
+    public class ChatHub(AppDbContext db, IConnectionMultiplexer connectionMultiplexer) :Hub
     {
-        
+
+        private static readonly ConcurrentDictionary<string, HashSet<Guid>> _connectionChannels = new();
+
+
         public async Task JoinChannel(Guid channelId)
         {
             var userId = GetUserId();
@@ -36,11 +42,36 @@ namespace ChatSpark.Api.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, channelId.ToString());
+
+            var redis = connectionMultiplexer.GetDatabase();
+
+            await redis.SetAddAsync($"presence:{channelId}", userId.ToString());
+
+
+            _connectionChannels.AddOrUpdate(
+                Context.ConnectionId,
+                _ => new HashSet<Guid> { channelId },
+                (_, set) => { set.Add(channelId); return set; });
+
+            await Clients.Group(channelId.ToString()).SendAsync("UserOnline", userId);
         }
 
         public async Task LeaveChannel(Guid channelId)
         {
+            var userId = GetUserId();
+            var redis = connectionMultiplexer.GetDatabase();
+
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, channelId.ToString());
+            await redis.SetRemoveAsync($"presence:{channelId}", userId.ToString());
+
+
+            if(_connectionChannels.TryGetValue(Context.ConnectionId, out var channelIds))
+            {
+                channelIds.Remove(channelId);
+            }
+
+            await Clients.Group(channelId.ToString()).SendAsync("UserOffline", userId);
+
         }
 
         private Guid GetUserId()
@@ -51,5 +82,24 @@ namespace ChatSpark.Api.Hubs
 
             return Guid.Parse(sub);
         }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var userId = GetUserId();
+            var redis = connectionMultiplexer.GetDatabase();
+
+            if (_connectionChannels.TryRemove(Context.ConnectionId, out var channelIds))
+            {
+                foreach (var channelId in channelIds)
+                {
+                    await redis.SetRemoveAsync($"presence:{channelId}", userId.ToString());
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, channelId.ToString());
+                    await Clients.Group(channelId.ToString()).SendAsync("UserOffline", userId);
+                }
+            }
+
+            await base.OnDisconnectedAsync(exception);
+        }
+
     }
 }

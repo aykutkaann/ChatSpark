@@ -17,7 +17,7 @@ public class RabbitMqPublisher : IEventPublisher, IDisposable
     public RabbitMqPublisher(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("RabbitMq")
-                            ?? "amqp://guest:guest@localhost:5672";
+                            ?? "amqp://chatspark:chatspark_dev@localhost:5672";
     }
 
     private async Task InitializeAsync()

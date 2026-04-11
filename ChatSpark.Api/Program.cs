@@ -63,6 +63,8 @@ builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 //RabbitMQ
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqPublisher>();
+builder.Services.AddHostedService<MessageSentConsumer>();
+
 
 //Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

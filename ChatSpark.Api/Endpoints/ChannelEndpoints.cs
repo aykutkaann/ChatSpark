@@ -5,6 +5,7 @@ using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Channels;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -32,7 +33,7 @@ namespace ChatSpark.Api.Endpoints
                     .FirstOrDefaultAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId);
 
 
-                if(membership == null || (membership.Role != Domain.Enum.Role.Admin && membership.Role != Role.Owner))
+                if(membership == null || (membership.Role != Domain.Enum.Role.Admin && membership.Role != Domain.Enum.Role.Owner))
                 {
                     return Results.Forbid();
                 }
@@ -126,7 +127,7 @@ namespace ChatSpark.Api.Endpoints
                 var isAuthorized = await db.WorkspaceMembers.AnyAsync(m =>
                                                                 m.WorkspaceId == channel.WorkspaceId &&
                                                                 m.UserId == userId &&
-                                                                (m.Role == Role.Admin || m.Role == Role.Owner));
+                                                                (m.Role == Domain.Enum.Role.Admin || m.Role == Domain.Enum.Role.Owner));
 
                 if (!isAuthorized) return Results.Forbid();
                 channel.Archive();
@@ -151,7 +152,7 @@ namespace ChatSpark.Api.Endpoints
                 var isAuthorized = await db.WorkspaceMembers.AnyAsync(m =>
                                                                 m.WorkspaceId == channel.WorkspaceId &&
                                                                 m.UserId == userId &&
-                                                                (m.Role == Role.Admin || m.Role == Role.Owner));
+                                                                (m.Role == Domain.Enum.Role.Admin || m.Role == Domain.Enum.Role.Owner));
 
                 if (!isAuthorized) return Results.Forbid();
 
@@ -163,6 +164,39 @@ namespace ChatSpark.Api.Endpoints
 
 
                 return Results.NoContent();
+            });
+
+
+            group.MapGet("/{channelId:guid}/presence", async (Guid workspaceId, Guid channelId,
+                AppDbContext db, ClaimsPrincipal principal, IConnectionMultiplexer redis) =>
+            {
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+                
+
+                var isWorkspaceMember = await db.WorkspaceMembers.AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId);
+
+                if (!isWorkspaceMember) return Results.Forbid();
+
+                var channel = await db.Channels.FindAsync(channelId);
+
+                if (channel is null) return Results.NotFound();
+
+                if (channel.IsPrivate)
+                {
+                    var isChannelMember = await db.ChannelMembers.AnyAsync(m => m.ChannelId == channelId && m.UserId == userId);
+
+                    if (!isChannelMember) return Results.Forbid();
+                }
+
+
+                var redisDb = redis.GetDatabase();
+                var members = await redisDb.SetMembersAsync($"presence:{channelId}");
+
+                var userIds = members.Select(m => Guid.Parse(m.ToString())).ToArray();
+
+                return Results.Ok(userIds);
+
+
             });
 
         }
