@@ -19,6 +19,8 @@ namespace ChatSpark.Api.Endpoints
             var group = routes.MapGroup("/api/workspaces/{workspaceId:guid}/channels").WithTags("Channels").RequireAuthorization();
 
 
+
+            // Create Channel with workspaceId
             group.MapPost("/", async (
                 Guid workspaceId,
                 CreateChannelRequest request,
@@ -26,9 +28,10 @@ namespace ChatSpark.Api.Endpoints
                 AppDbContext db,
                 ICacheService service) =>
             {
-                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-);
-
+                //Get userId
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+                                                                                        
+                //Check membership of workspace
                 var membership = await db.WorkspaceMembers
                     .FirstOrDefaultAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId);
 
@@ -38,11 +41,12 @@ namespace ChatSpark.Api.Endpoints
                     return Results.Forbid();
                 }
 
-
+                //ChannelId must be unique
                 var nameExists = await db.Channels.AnyAsync(c => c.WorkspaceId == workspaceId && c.Name.ToLower() == request.Name.ToLower());
                 if (nameExists)
                     return Results.Conflict("This channel name is already taken");
 
+                //Create channel with method
                 var channel = Channel.Create( workspaceId, request.Name, request.IsPrivate);
                 db.Channels.Add(channel);
 
@@ -55,6 +59,7 @@ namespace ChatSpark.Api.Endpoints
 
                 await db.SaveChangesAsync();
 
+                //RAM cleaning for new channels to be shown 
                 await service.RemoveByPrefixAsync($"channels:{workspaceId}:");
 
 
@@ -67,7 +72,7 @@ namespace ChatSpark.Api.Endpoints
                     channel.CreatedAt));
             });
 
-
+            //GET channels with workspaceId
             group.MapGet("/", async (
                 Guid workspaceId,
                 IDbConnectionFactory connectionFactory,
@@ -94,6 +99,7 @@ namespace ChatSpark.Api.Endpoints
                     return Results.Ok(cachedChannels);
                 }
 
+                //DAPPER
                 const string sql = @"
                                 SELECT c.id, c.workspace_id, c.name, c.is_private, c.is_archived, c.created_at
                                 FROM channels c
@@ -117,6 +123,7 @@ namespace ChatSpark.Api.Endpoints
                 return Results.Ok(channels);
             });
 
+            //Making a channel archived
             group.MapPost("/{channelId:guid}/archive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal, ICacheService service) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
@@ -142,6 +149,7 @@ namespace ChatSpark.Api.Endpoints
 
             });
 
+            // Making a channel Unarchived
             group.MapPost("/{channelId:guid}/unarchive", async (Guid channelId, AppDbContext db, ClaimsPrincipal principal, ICacheService service) =>
             {
                 var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
@@ -167,6 +175,7 @@ namespace ChatSpark.Api.Endpoints
             });
 
 
+            //GET who is online right now
             group.MapGet("/{channelId:guid}/presence", async (Guid workspaceId, Guid channelId,
                 AppDbContext db, ClaimsPrincipal principal, IConnectionMultiplexer redis) =>
             {
@@ -195,6 +204,38 @@ namespace ChatSpark.Api.Endpoints
                 var userIds = members.Select(m => Guid.Parse(m.ToString())).ToArray();
 
                 return Results.Ok(userIds);
+
+
+            });
+
+            //GETs read notification
+            group.MapGet("/{channelId:guid}/readreceipts", async (Guid workspaceId, Guid channelId,
+                AppDbContext db, IConnectionMultiplexer redis, ClaimsPrincipal principal) =>
+            {
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+
+                var isWorkspaceMember = await db.WorkspaceMembers.AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId);
+
+                if (!isWorkspaceMember) return Results.Forbid();
+
+                var channel = await db.Channels.FindAsync(channelId);
+                if (channel is null) return Results.NotFound();
+
+                if (channel.IsPrivate)
+                {
+                    var isChannelMember = await db.ChannelMembers.AnyAsync(m => m.ChannelId == channelId && m.UserId == userId);
+
+                    if (!isChannelMember) return Results.Forbid();
+                }
+
+                var redisDb =  redis.GetDatabase();
+
+                var entires = await redisDb.HashGetAllAsync($"readreceipts:{channelId}");
+
+                var receipts = entires.ToDictionary(e => Guid.Parse(e.Name.ToString()),
+                                                    e => Guid.Parse(e.Value.ToString()));
+
+                return Results.Ok(receipts);
 
 
             });

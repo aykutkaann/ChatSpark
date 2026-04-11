@@ -3,11 +3,15 @@
 <body>
     <input id="token" placeholder="paste JWT" />
     <input id="channelId" placeholder="channel GUID" />
+    <input id="messageId" placeholder="message GUID" />
+
     <button onclick="connect()">Connect</button>
     <button onclick="join()">Join</button>
     <button onclick="leave()">Leave</button>
     <button onclick="startTyping()">Start Typing</button>
     <button onclick="stopTyping()">Stop Typing</button>
+    <button onclick="markRead()">Mark as Read</button>
+
 
 <pre id="log"></pre>
 
@@ -26,6 +30,14 @@
             conn.on('MessageDeleted', m => log('DELETED: ' + JSON.stringify(m)));
             conn.on('UserStartedTyping', d => log('TYPING: ' + d.userId));
             conn.on('UserStoppedTyping', d => log('STOPPED TYPING: ' + d.userId));
+            conn.on('MessageRead', d => log('READ: ' + d.userId + ' read up to ' + d.messageId));
+
+            async function markRead() {
+                await conn.invoke('MarkAsRead',
+                    document.getElementById('channelId').value,
+                    document.getElementById('messageId').value);
+            }
+
 
             async function startTyping() {
                 await conn.invoke('StartTyping', document.getElementById('channelId').value);

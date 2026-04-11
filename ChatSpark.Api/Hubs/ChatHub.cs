@@ -114,5 +114,16 @@ namespace ChatSpark.Api.Hubs
             await Clients.OthersInGroup(channelId.ToString()).SendAsync("UserStoppedTyping", new { userId, channelId });
         }
 
+
+        public async Task MarkAsRead(Guid channelId, Guid messageId)
+        {
+            var userId = GetUserId();
+            var redis = connectionMultiplexer.GetDatabase();
+
+            await redis.HashSetAsync($"readreceipts:{channelId}", userId.ToString(), messageId.ToString());
+
+            await Clients.OthersInGroup(channelId.ToString()).SendAsync("MessageRead", new { userId, channelId, messageId });
+        }
+
     }
 }
