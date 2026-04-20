@@ -110,7 +110,7 @@ namespace ChatSpark.Api.Endpoints
                                 SELECT id, channel_id, sender_id, content, sent_at, edited_at, deleted_at
                                 FROM messages
                                 WHERE channel_id = @ChannelId 
-                                  AND deleted_at IS NUL
+                                  AND deleted_at IS NULL
                                   AND (@Before::timestamptz IS NULL OR sent_at < @Before::timestamptz)
                                 ORDER BY sent_at DESC
                                 LIMIT @Limit;";

@@ -81,6 +81,19 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  client:
+    build:
+      context: ./chatspark-client
+      dockerfile: Dockerfile
+    container_name: chatspark-client
+    ports:
+      - "80:80"
+    networks:
+      - chatspark-net
+    depends_on:
+      - api
+    restart: unless-stopped
+
   
 
 

@@ -36,6 +36,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog();
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 //Database
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -162,6 +174,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("Frontend");
+
 app.UseStaticFiles();
 
 app.UseAuthentication();
@@ -198,6 +212,13 @@ app.MapChannelEndpoints();
 app.MapHub<ChatHub>("/hubs/chat");
 
 app.MapMessageEndpoints();
+
+// Apply pending EF Core migrations on startup (needed for Docker)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 app.Run();
 
