@@ -421,6 +421,84 @@ ul {
   object-fit: cover;
 }
 
+/* User Profile View Modal */
+.user-profile-modal {
+  max-width: 360px;
+}
+
+.user-profile-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.user-profile-avatar-wrap {
+  margin-bottom: 4px;
+}
+
+.user-profile-avatar-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  display: block;
+}
+
+.user-profile-avatar-letter {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.user-profile-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.user-profile-bio {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 280px;
+  white-space: pre-wrap;
+}
+
+.user-profile-link {
+  font-size: 13px;
+  color: var(--text-link);
+  word-break: break-all;
+  text-align: center;
+}
+
+.user-profile-joined {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  text-align: center;
+}
+
+.user-profile-error {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px 0;
+}
+
 /* Invite code display box */
 .invite-code-section {
   display: flex;

@@ -1,5 +1,5 @@
 import api from "./axios";
-import type { ProfileResponse, UpdateProfileRequest } from "../types/profile";
+import type { ProfileResponse, PublicProfileResponse, UpdateProfileRequest } from "../types/profile";
 
 export const profileApi = {
   getProfile: () =>
@@ -7,6 +7,9 @@ export const profileApi = {
 
   updateProfile: (data: UpdateProfileRequest) =>
     api.patch<ProfileResponse>("/api/profile", data),
+
+  getUserProfile: (userId: string) =>
+    api.get<PublicProfileResponse>(`/api/users/${userId}`),
 
   uploadAvatar: async (file: File): Promise<string> => {
     const form = new FormData();

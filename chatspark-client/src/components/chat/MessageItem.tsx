@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { MessageResponse } from "../../types/message";
 import { formatTime, formatRelativeTime } from "../../utils/dateFormat";
 import { useAuth } from "../../context/AuthContext";
+import { UserProfileModal } from "../profile/UserProfileModal";
 
 interface Props {
   message: MessageResponse;
@@ -16,6 +17,7 @@ export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) 
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const [showActions, setShowActions] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,12 @@ export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) 
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className="message-avatar">
+      <div
+        className="message-avatar"
+        onClick={() => setShowProfile(true)}
+        style={{ cursor: "pointer" }}
+        title={`View ${displayName}'s profile`}
+      >
         {message.senderAvatarUrl ? (
           <img src={message.senderAvatarUrl} alt={avatarLetter} className="message-avatar-img" />
         ) : (
@@ -45,7 +52,13 @@ export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) 
       <div className="message-content">
         {showUsername && (
           <div className="message-meta">
-            <span className="message-sender">{displayName}</span>
+            <span
+              className="message-sender"
+              onClick={() => setShowProfile(true)}
+              style={{ cursor: "pointer" }}
+            >
+              {displayName}
+            </span>
             <span className="message-time" title={formatRelativeTime(message.sentAt)}>
               {formatTime(message.sentAt)}
             </span>
@@ -120,6 +133,13 @@ export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) 
             🗑️
           </button>
         </div>
+      )}
+
+      {showProfile && (
+        <UserProfileModal
+          userId={message.senderId}
+          onClose={() => setShowProfile(false)}
+        />
       )}
     </div>
   );

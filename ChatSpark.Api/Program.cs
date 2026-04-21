@@ -251,6 +251,17 @@ app.MapPatch("/api/profile", async (UpdateProfileRequest request, ClaimsPrincipa
 
 app.UseStaticFiles();
 
+// Public profile — any authenticated user can look up anyone
+app.MapGet("/api/users/{targetUserId:guid}", async (Guid targetUserId, AppDbContext db) =>
+{
+    var user = await db.Users.FindAsync(targetUserId);
+    if (user is null) return Results.NotFound();
+
+    return Results.Ok(new PublicProfileResponse(
+        user.Id, user.DisplayName, user.AvatarUrl,
+        user.Bio, user.WebsiteUrl, user.CreatedAt));
+}).RequireAuthorization();
+
 app.MapPost("/api/profile/avatar", async (IFormFile file, [FromServices] IWebHostEnvironment env) =>
 {
     // 1. Validation: Type and Size

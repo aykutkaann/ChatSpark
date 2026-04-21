@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { workspaceApi } from "../../api/workspaceApi";
 import type { WorkspaceMemberInfo } from "../../types/workspace";
 import { useAuth } from "../../context/AuthContext";
+import { UserProfileModal } from "../profile/UserProfileModal";
 
 interface Props {
   workspaceId: string;
@@ -12,6 +13,7 @@ export function MembersPanel({ workspaceId, isOpen }: Props) {
   const { user } = useAuth();
   const [members, setMembers] = useState<WorkspaceMemberInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -31,7 +33,7 @@ export function MembersPanel({ workspaceId, isOpen }: Props) {
     const letter = m.displayName.charAt(0).toUpperCase();
 
     return (
-      <div key={m.userId} className="member-row">
+      <div key={m.userId} className="member-row" onClick={() => setProfileUserId(m.userId)} style={{ cursor: "pointer" }}>
         <div className="member-avatar-wrap">
           {m.avatarUrl ? (
             <img src={m.avatarUrl} alt={m.displayName} className="member-avatar-img" />
@@ -52,30 +54,39 @@ export function MembersPanel({ workspaceId, isOpen }: Props) {
   };
 
   return (
-    <aside className="members-panel">
-      <div className="members-panel-header">
-        <span>Members</span>
-        <span className="members-count">{members.length}</span>
-      </div>
+    <>
+      <aside className="members-panel">
+        <div className="members-panel-header">
+          <span>Members</span>
+          <span className="members-count">{members.length}</span>
+        </div>
 
-      {isLoading ? (
-        <div className="members-loading"><div className="spinner spinner-sm" /></div>
-      ) : (
-        <>
-          {online.length > 0 && (
-            <div className="members-section">
-              <div className="members-section-label">Online — {online.length}</div>
-              {online.map(renderMember)}
-            </div>
-          )}
-          {offline.length > 0 && (
-            <div className="members-section">
-              <div className="members-section-label">Offline — {offline.length}</div>
-              {offline.map(renderMember)}
-            </div>
-          )}
-        </>
+        {isLoading ? (
+          <div className="members-loading"><div className="spinner spinner-sm" /></div>
+        ) : (
+          <>
+            {online.length > 0 && (
+              <div className="members-section">
+                <div className="members-section-label">Online — {online.length}</div>
+                {online.map(renderMember)}
+              </div>
+            )}
+            {offline.length > 0 && (
+              <div className="members-section">
+                <div className="members-section-label">Offline — {offline.length}</div>
+                {offline.map(renderMember)}
+              </div>
+            )}
+          </>
+        )}
+      </aside>
+
+      {profileUserId && (
+        <UserProfileModal
+          userId={profileUserId}
+          onClose={() => setProfileUserId(null)}
+        />
       )}
-    </aside>
+    </>
   );
 }
