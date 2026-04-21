@@ -77,6 +77,11 @@ export function useMessages(channelId: string | null) {
     await messageApi.sendMessage(channelId, { content });
   }, [channelId]);
 
+  const uploadMedia = useCallback(async (file: File) => {
+    if (!channelId) return;
+    await messageApi.uploadMedia(channelId, file);
+  }, [channelId]);
+
   const editMessage = useCallback(async (messageId: string, content: string) => {
     if (!channelId) return;
     await messageApi.editMessage(channelId, messageId, { content });
@@ -87,5 +92,5 @@ export function useMessages(channelId: string | null) {
     await messageApi.deleteMessage(channelId, messageId);
   }, [channelId]);
 
-  return { messages, isLoading, hasMore, loadMore, sendMessage, editMessage, deleteMessage };
+  return { messages, isLoading, hasMore, loadMore, sendMessage, editMessage, deleteMessage, uploadMedia };
 }

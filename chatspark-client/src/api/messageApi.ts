@@ -15,4 +15,12 @@ export const messageApi = {
 
   deleteMessage: (channelId: string, messageId: string) =>
     api.delete(`/api/channels/${channelId}/messages/${messageId}`),
+
+  uploadMedia: (channelId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post<MessageResponse>(`/api/channels/${channelId}/messages/upload`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };

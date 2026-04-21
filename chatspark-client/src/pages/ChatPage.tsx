@@ -34,7 +34,7 @@ export function ChatPage() {
 
   const activeChannel = channels.find((c) => c.id === activeChannelId) ?? null;
 
-  const { messages, isLoading: messagesLoading, hasMore, loadMore, sendMessage, editMessage, deleteMessage } =
+  const { messages, isLoading: messagesLoading, hasMore, loadMore, sendMessage, editMessage, deleteMessage, uploadMedia } =
     useMessages(activeChannelId);
 
   const { onlineUsers } = usePresence(workspaceId ?? null, activeChannelId);
@@ -179,6 +179,7 @@ export function ChatPage() {
               <MessageInput
                 channel={activeChannel}
                 onSend={sendMessage}
+                onSendMedia={uploadMedia}
                 onTyping={notifyTyping}
                 onStopTyping={stopTyping}
               />

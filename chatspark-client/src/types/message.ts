@@ -16,4 +16,6 @@ export interface MessageResponse {
   deletedAt: string | null;
   senderName: string;
   senderAvatarUrl?: string;
+  messageType: number; // 0 = Text, 1 = Image, 2 = Voice
+  fileUrl?: string;
 }

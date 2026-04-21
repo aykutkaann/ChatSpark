@@ -1,5 +1,7 @@
 ﻿
 
+using ChatSpark.Domain.Enum;
+
 namespace ChatSpark.Domain.Entities
 {
     public class Message
@@ -8,16 +10,17 @@ namespace ChatSpark.Domain.Entities
         public Guid ChannelId { get;private set; }
         public Guid SenderId { get;private set; } //User
 
-        public string Content { get;private set; } = null!;
+        public string Content { get;private set; } = string.Empty;
+        public MessageType MessageType { get; private set; }
+        public string? FileUrl { get; private set; }
         public DateTime SentAt { get; private set; }
         public DateTime? EditedAt { get;private set; }
         public DateTime? DeletedAt { get; private set; }
 
         private Message() { }
 
-        public static  Message Create(Guid channelId, Guid senderId, string content)
+        public static Message Create(Guid channelId, Guid senderId, string content)
         {
-
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Message content cannot be empty.");
 
@@ -33,6 +36,30 @@ namespace ChatSpark.Domain.Entities
                 ChannelId = channelId,
                 SenderId = senderId,
                 Content = content,
+                MessageType = MessageType.Text,
+                SentAt = DateTime.UtcNow
+            };
+        }
+
+        public static Message CreateMedia(Guid channelId, Guid senderId, string fileUrl, MessageType messageType)
+        {
+            if (channelId == Guid.Empty)
+                throw new ArgumentException("ChannelId must be a valid Guid.");
+
+            if (senderId == Guid.Empty)
+                throw new ArgumentException("SenderId must be a valid Guid.");
+
+            if (string.IsNullOrWhiteSpace(fileUrl))
+                throw new ArgumentException("FileUrl cannot be empty.");
+
+            return new Message
+            {
+                Id = Guid.NewGuid(),
+                ChannelId = channelId,
+                SenderId = senderId,
+                Content = string.Empty,
+                FileUrl = fileUrl,
+                MessageType = messageType,
                 SentAt = DateTime.UtcNow
             };
         }

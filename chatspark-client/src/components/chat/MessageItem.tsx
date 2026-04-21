@@ -76,6 +76,26 @@ export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) 
               <button type="button" className="btn-secondary btn-sm" onClick={() => setIsEditing(false)}>Cancel</button>
             </div>
           </form>
+        ) : message.messageType === 1 && message.fileUrl ? (
+          <a
+            href={`${import.meta.env.VITE_API_URL}${message.fileUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open full size"
+          >
+            <img
+              src={`${import.meta.env.VITE_API_URL}${message.fileUrl}`}
+              alt="image"
+              className="message-image"
+              loading="lazy"
+            />
+          </a>
+        ) : message.messageType === 2 && message.fileUrl ? (
+          <audio
+            controls
+            src={`${import.meta.env.VITE_API_URL}${message.fileUrl}`}
+            className="message-audio"
+          />
         ) : (
           <p className="message-text">{message.content}</p>
         )}
@@ -83,13 +103,15 @@ export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) 
 
       {isOwn && showActions && !isEditing && (
         <div className="message-actions">
-          <button
-            className="message-action-btn"
-            onClick={() => { setIsEditing(true); setEditContent(message.content); }}
-            title="Edit"
-          >
-            ✏️
-          </button>
+          {message.messageType === 0 && (
+            <button
+              className="message-action-btn"
+              onClick={() => { setIsEditing(true); setEditContent(message.content); }}
+              title="Edit"
+            >
+              ✏️
+            </button>
+          )}
           <button
             className="message-action-btn message-action-danger"
             onClick={() => onDelete(message.id)}

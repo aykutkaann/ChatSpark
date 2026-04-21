@@ -12,7 +12,9 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
 
             builder.HasKey(m => m.Id);
 
-            builder.Property(m => m.Content).IsRequired().HasMaxLength(4000);
+            builder.Property(m => m.Content).IsRequired(false).HasMaxLength(4000);
+            builder.Property(m => m.FileUrl).IsRequired(false).HasMaxLength(500);
+            builder.Property(m => m.MessageType).IsRequired().HasDefaultValue(ChatSpark.Domain.Enum.MessageType.Text);
 
             builder.Property(m => m.ChannelId).IsRequired();
 
