@@ -56,7 +56,7 @@ namespace ChatSpark.Api.Endpoints
 
 
                 await hub.Clients.Group(channelId.ToString())
-                        .SendAsync("MessageREceived", new MessageResponse(
+                        .SendAsync("MessageReceived", new MessageResponse(
                             messages.Id,
                             messages.ChannelId,
                             messages.SenderId,
@@ -196,9 +196,6 @@ namespace ChatSpark.Api.Endpoints
                 await db.SaveChangesAsync();
 
                 await hubContext.Clients.Group(channelId.ToString()).SendAsync("MessageDeleted", messageId);
-
-                if (message.DeletedAt is not null) return Results.NotFound("Message not found.");
-
 
                 return Results.NoContent();
 

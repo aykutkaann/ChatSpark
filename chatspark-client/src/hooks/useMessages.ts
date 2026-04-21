@@ -43,8 +43,8 @@ export function useMessages(channelId: string | null) {
       setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
     };
 
-    const onDeleted = (data: { messageId: string }) => {
-      setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
+    const onDeleted = (messageId: string) => {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
     };
 
     connection.on("MessageReceived", onReceived);
