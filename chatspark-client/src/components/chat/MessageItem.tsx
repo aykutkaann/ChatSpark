@@ -5,11 +5,12 @@ import { useAuth } from "../../context/AuthContext";
 
 interface Props {
   message: MessageResponse;
+  showUsername: boolean;
   onEdit: (messageId: string, content: string) => void;
   onDelete: (messageId: string) => void;
 }
 
-export function MessageItem({ message, onEdit, onDelete }: Props) {
+export function MessageItem({ message, showUsername, onEdit, onDelete }: Props) {
   const { user } = useAuth();
   const isOwn = message.senderId === user?.id;
   const [isEditing, setIsEditing] = useState(false);
@@ -24,6 +25,9 @@ export function MessageItem({ message, onEdit, onDelete }: Props) {
     setIsEditing(false);
   };
 
+  const avatarLetter = message.senderName.charAt(0).toUpperCase();
+  const displayName = isOwn ? "You" : message.senderName;
+
   return (
     <div
       className={`message-item ${isOwn ? "message-own" : ""}`}
@@ -31,17 +35,32 @@ export function MessageItem({ message, onEdit, onDelete }: Props) {
       onMouseLeave={() => setShowActions(false)}
     >
       <div className="message-avatar">
-        {message.senderId.charAt(0).toUpperCase()}
+        {message.senderAvatarUrl ? (
+          <img src={message.senderAvatarUrl} alt={avatarLetter} className="message-avatar-img" />
+        ) : (
+          avatarLetter
+        )}
       </div>
 
       <div className="message-content">
-        <div className="message-meta">
-          <span className="message-sender">{isOwn ? "You" : `User ${message.senderId.slice(0, 8)}`}</span>
-          <span className="message-time" title={formatRelativeTime(message.sentAt)}>
-            {formatTime(message.sentAt)}
-          </span>
-          {message.editedAt && <span className="message-edited">(edited)</span>}
-        </div>
+        {showUsername && (
+          <div className="message-meta">
+            <span className="message-sender">{displayName}</span>
+            <span className="message-time" title={formatRelativeTime(message.sentAt)}>
+              {formatTime(message.sentAt)}
+            </span>
+            {message.editedAt && <span className="message-edited">(edited)</span>}
+          </div>
+        )}
+
+        {!showUsername && (
+          <div className="message-meta message-meta-compact">
+            <span className="message-time message-time-hidden" title={formatRelativeTime(message.sentAt)}>
+              {formatTime(message.sentAt)}
+            </span>
+            {message.editedAt && <span className="message-edited">(edited)</span>}
+          </div>
+        )}
 
         {isEditing ? (
           <form onSubmit={handleEditSubmit} className="edit-form">

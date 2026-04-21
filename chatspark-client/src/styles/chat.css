@@ -95,6 +95,31 @@
   background-color: var(--success);
 }
 
+.message-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Compact meta row when usernames are hidden — time shows on hover only */
+.message-meta-compact {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.message-item:hover .message-meta-compact {
+  height: auto;
+  opacity: 1;
+}
+
+.message-time-hidden {
+  font-size: 11px;
+}
+
 .message-content {
   flex: 1;
   min-width: 0;

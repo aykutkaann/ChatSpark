@@ -13,7 +13,9 @@ namespace ChatSpark.Shared.Dtos.Messages
         string Content,
         DateTime SentAt,
         DateTime? EditedAt,
-        DateTime? DeletedAt);
+        DateTime? DeletedAt,
+        string SenderName = "Unknown",
+        string? SenderAvatarUrl = null);
     public record EditMessageRequest(string Content);
 
 }

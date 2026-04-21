@@ -7,6 +7,7 @@ interface Props {
   messages: MessageResponse[];
   isLoading: boolean;
   hasMore: boolean;
+  showUsername: boolean;
   onLoadMore: () => void;
   onEdit: (messageId: string, content: string) => void;
   onDelete: (messageId: string) => void;
@@ -28,7 +29,7 @@ function groupByDate(messages: MessageResponse[]) {
   return groups;
 }
 
-export function MessageList({ messages, isLoading, hasMore, onLoadMore, onEdit, onDelete }: Props) {
+export function MessageList({ messages, isLoading, hasMore, showUsername, onLoadMore, onEdit, onDelete }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
@@ -80,7 +81,7 @@ export function MessageList({ messages, isLoading, hasMore, onLoadMore, onEdit, 
             <div className="date-divider-line" />
           </div>
           {group.messages.map((msg) => (
-            <MessageItem key={msg.id} message={msg} onEdit={onEdit} onDelete={onDelete} />
+            <MessageItem key={msg.id} message={msg} showUsername={showUsername} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </div>
       ))}

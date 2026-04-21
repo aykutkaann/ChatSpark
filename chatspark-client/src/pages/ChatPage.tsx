@@ -152,20 +152,23 @@ export function ChatPage() {
                 <span className="chat-header-icon">{activeChannel.isPrivate ? "🔒" : "#"}</span>
                 <h2 className="chat-header-name">{activeChannel.name}</h2>
               </div>
-              <PresenceBar onlineUsers={onlineUsers} currentUserId={user?.id ?? ""} />
-              <button
-                className={`members-toggle-btn ${showMembers ? "members-toggle-active" : ""}`}
-                onClick={() => setShowMembers((prev) => !prev)}
-                title="Show members"
-              >
-                👥 Members
-              </button>
+              <div className="chat-header-right">
+                <PresenceBar onlineUsers={onlineUsers} currentUserId={user?.id ?? ""} />
+                <button
+                  className={`members-toggle-btn ${showMembers ? "members-toggle-active" : ""}`}
+                  onClick={() => setShowMembers((prev) => !prev)}
+                  title="Show members"
+                >
+                  👥 Members
+                </button>
+              </div>
             </div>
 
             <MessageList
               messages={messages}
               isLoading={messagesLoading}
               hasMore={hasMore}
+              showUsername={true}
               onLoadMore={loadMore}
               onEdit={editMessage}
               onDelete={deleteMessage}

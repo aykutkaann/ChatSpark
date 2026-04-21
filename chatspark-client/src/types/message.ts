@@ -14,4 +14,6 @@ export interface MessageResponse {
   sentAt: string;
   editedAt: string | null;
   deletedAt: string | null;
+  senderName: string;
+  senderAvatarUrl?: string;
 }
