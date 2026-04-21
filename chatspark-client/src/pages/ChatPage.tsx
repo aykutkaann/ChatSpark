@@ -73,6 +73,27 @@ export function ChatPage() {
     }
   }, [messages.length]);
 
+  const handleChannelDeleted = useCallback((channelId: string) => {
+    setChannels((prev) => {
+      const remaining = prev.filter((c) => c.id !== channelId);
+      // If the deleted channel was active, switch to the first remaining one
+      if (activeChannelId === channelId) {
+        const next = remaining[0] ?? null;
+        setActiveChannelId(next?.id ?? null);
+        if (next) joinChannel(next.id);
+      }
+      return remaining;
+    });
+  }, [activeChannelId, joinChannel]);
+
+  const handleChannelJoined = useCallback((channel: ChannelResponse) => {
+    setChannels((prev) => {
+      if (prev.some((c) => c.id === channel.id)) return prev;
+      return [...prev, channel].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    handleSelectChannel(channel.id);
+  }, [handleSelectChannel]);
+
   const handleLeaveWorkspace = async () => {
     if (!workspaceId) return;
     try {
@@ -104,6 +125,8 @@ export function ChatPage() {
           setChannels((prev) => [...prev, ch]);
           handleSelectChannel(ch.id);
         }}
+        onChannelDeleted={handleChannelDeleted}
+        onChannelJoined={handleChannelJoined}
         onLeaveWorkspace={handleLeaveWorkspace}
         isConnected={isConnected}
       />

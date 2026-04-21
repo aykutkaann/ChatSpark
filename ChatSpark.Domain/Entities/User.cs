@@ -8,6 +8,8 @@ namespace ChatSpark.Domain.Entities
         public string DisplayName { get; private set; } = null!;
         public string PasswordHash { get; private set; } = null!;
         public string? AvatarUrl { get; private set; }
+        public string? Bio { get; private set; }
+        public string? WebsiteUrl { get; private set; }
         public DateTime CreatedAt { get; private set; }
 
 
@@ -58,6 +60,18 @@ namespace ChatSpark.Domain.Entities
                 throw new ArgumentException("New hashed password cannot be empty.");
 
             PasswordHash = newHash;
+        }
+
+        public void UpdateProfile(string? bio, string? websiteUrl)
+        {
+            if (bio is not null && bio.Length > 300)
+                throw new ArgumentException("Bio cannot exceed 300 characters.");
+
+            if (websiteUrl is not null && websiteUrl.Length > 512)
+                throw new ArgumentException("Website URL is too long.");
+
+            Bio = bio;
+            WebsiteUrl = websiteUrl;
         }
     }
 }

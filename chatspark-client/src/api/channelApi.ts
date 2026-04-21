@@ -8,6 +8,15 @@ export const channelApi = {
   createChannel: (workspaceId: string, data: CreateChannelRequest) =>
     api.post<ChannelResponse>(`/api/workspaces/${workspaceId}/channels`, data),
 
+  deleteChannel: (workspaceId: string, channelId: string) =>
+    api.delete(`/api/workspaces/${workspaceId}/channels/${channelId}`),
+
+  getInviteCode: (workspaceId: string, channelId: string) =>
+    api.get<{ inviteCode: string }>(`/api/workspaces/${workspaceId}/channels/${channelId}/invite-code`),
+
+  joinByCode: (workspaceId: string, inviteCode: string) =>
+    api.post<ChannelResponse>(`/api/workspaces/${workspaceId}/channels/join-by-code`, { inviteCode }),
+
   archiveChannel: (workspaceId: string, channelId: string) =>
     api.post(`/api/workspaces/${workspaceId}/channels/${channelId}/archive`),
 

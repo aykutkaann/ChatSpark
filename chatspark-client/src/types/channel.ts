@@ -10,4 +10,5 @@ export interface ChannelResponse {
   isPrivate: boolean;
   isArchived: boolean;
   createdAt: string;
+  inviteCode?: string;
 }

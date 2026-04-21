@@ -23,4 +23,7 @@ export interface CurrentUser {
   id: string;
   email: string;
   displayName: string;
+  avatarUrl?: string;
+  bio?: string;
+  websiteUrl?: string;
 }

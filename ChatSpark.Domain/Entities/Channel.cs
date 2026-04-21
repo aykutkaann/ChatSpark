@@ -8,6 +8,8 @@ namespace ChatSpark.Domain.Entities
         public Guid WorkspaceId { get; private set; }
 
         public string Name { get;private set; } = null!;
+
+        public string? InviteCode { get; private set; }
         public bool IsPrivate { get; private set; }
         public bool IsArchived { get; private set; }
         public DateTime CreatedAt { get;private set; }
@@ -22,6 +24,8 @@ namespace ChatSpark.Domain.Entities
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Channel name cannot be empty.");
 
+ 
+
             if (workspaceId == Guid.Empty)
                 throw new ArgumentException("WorkspaceId must be a valid Guid.");
 
@@ -31,6 +35,7 @@ namespace ChatSpark.Domain.Entities
                 WorkspaceId = workspaceId,
                 Name = name,
                 IsPrivate = isPrivate,
+                InviteCode = isPrivate ? Guid.NewGuid().ToString("N")[..8]: null,
                 CreatedAt = DateTime.UtcNow
             };
         }

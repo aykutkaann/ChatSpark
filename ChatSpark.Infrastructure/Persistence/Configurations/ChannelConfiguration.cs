@@ -17,6 +17,7 @@ namespace ChatSpark.Infrastructure.Persistence.Configurations
 
             builder.Property(c => c.CreatedAt).IsRequired();
             builder.Property(c => c.IsArchived).IsRequired();
+            builder.Property(c => c.InviteCode).HasMaxLength(16);
 
             builder.HasOne<Workspace>()
                 .WithMany()

@@ -25,7 +25,7 @@ export function MessageInput({ channel, onSend, onTyping, onStopTyping }: Props)
       await onSend(trimmed);
     } finally {
       setIsSending(false);
-      textareaRef.current?.focus();
+    setTimeout(() => textareaRef.current?.focus(), 0);
     }
   };
 

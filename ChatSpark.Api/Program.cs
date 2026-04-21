@@ -5,10 +5,9 @@ using ChatSpark.Infrastructure.Auth;
 using ChatSpark.Infrastructure.Caching;
 using ChatSpark.Infrastructure.Messaging;
 using ChatSpark.Infrastructure.Persistence;
+using ChatSpark.Shared.Dtos.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -212,6 +211,39 @@ app.MapChannelEndpoints();
 app.MapHub<ChatHub>("/hubs/chat");
 
 app.MapMessageEndpoints();
+
+// Profile endpoints
+app.MapGet("/api/profile", async (ClaimsPrincipal principal, AppDbContext db) =>
+{
+    var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    var user = await db.Users.FindAsync(userId);
+    if (user is null) return Results.NotFound();
+
+    return Results.Ok(new ProfileResponse(
+        user.Id, user.Email, user.DisplayName,
+        user.AvatarUrl, user.Bio, user.WebsiteUrl, user.CreatedAt));
+}).RequireAuthorization();
+
+app.MapPatch("/api/profile", async (UpdateProfileRequest request, ClaimsPrincipal principal, AppDbContext db) =>
+{
+    var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+    var user = await db.Users.FindAsync(userId);
+    if (user is null) return Results.NotFound();
+
+    if (!string.IsNullOrWhiteSpace(request.DisplayName))
+        user.UpdateDisplayName(request.DisplayName);
+
+    if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
+        user.UpdateAvatar(request.AvatarUrl);
+
+    user.UpdateProfile(request.Bio, request.WebsiteUrl);
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ProfileResponse(
+        user.Id, user.Email, user.DisplayName,
+        user.AvatarUrl, user.Bio, user.WebsiteUrl, user.CreatedAt));
+}).RequireAuthorization();
 
 // Apply pending EF Core migrations on startup (needed for Docker)
 using (var scope = app.Services.CreateScope())
