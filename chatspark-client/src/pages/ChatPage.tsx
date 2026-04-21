@@ -104,6 +104,16 @@ export function ChatPage() {
     }
   };
 
+  const handleDeleteWorkspace = async () => {
+    if (!workspaceId) return;
+    try {
+      await workspaceApi.deleteWorkspace(workspaceId);
+      navigate("/");
+    } catch {
+      alert("Failed to delete workspace.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="splash-screen">
@@ -128,6 +138,7 @@ export function ChatPage() {
         onChannelDeleted={handleChannelDeleted}
         onChannelJoined={handleChannelJoined}
         onLeaveWorkspace={handleLeaveWorkspace}
+        onDeleteWorkspace={handleDeleteWorkspace}
         isConnected={isConnected}
       />
 

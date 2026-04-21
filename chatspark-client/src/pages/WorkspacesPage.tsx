@@ -22,6 +22,22 @@ export function WorkspacesPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
+
+  const handleDeleteWorkspace = async (id: string, name: string) => {
+    const confirmed = window.confirm(
+      `Delete workspace ${name}? This will delete all channels and messages forever`
+    );
+
+    if(!confirmed) return;
+
+    try{
+      await workspaceApi.deleteWorkspace(id);
+      setWorkspaces((prev) => prev.filter((w) => w.id !== id));
+    }catch(error){
+      console.error("Failed to delete workspace:", error);
+    }
+  };
+
   return (
     <div className="workspaces-page">
       <header className="workspaces-header">
@@ -40,8 +56,10 @@ export function WorkspacesPage() {
         ) : (
           <WorkspaceList
             workspaces={workspaces}
+            currentUser={user} 
             onCreateClick={() => setShowCreate(true)}
             onJoinClick={() => setShowJoin(true)}
+            onDelete={handleDeleteWorkspace} 
           />
         )}
       </main>

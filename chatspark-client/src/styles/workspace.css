@@ -78,6 +78,28 @@
   color: var(--text-muted);
 }
 
+.workspace-card-delete {
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.1s, background-color 0.1s;
+  flex-shrink: 0;
+}
+
+.workspace-card:hover .workspace-card-delete {
+  opacity: 1;
+}
+
+.workspace-card-delete:hover {
+  background-color: rgba(242, 63, 67, 0.15);
+  color: var(--danger);
+}
+
 .workspace-card-arrow {
   color: var(--text-muted);
   font-size: 18px;

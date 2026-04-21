@@ -13,4 +13,7 @@ export const workspaceApi = {
 
   leaveWorkspace: (workspaceId: string) =>
     api.post(`/api/workspaces/${workspaceId}/leave`),
+
+  deleteWorkspace: (workspaceId: string) => 
+    api.delete(`/api/workspaces/${workspaceId}`),
 };

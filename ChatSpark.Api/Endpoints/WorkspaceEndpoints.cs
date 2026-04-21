@@ -144,6 +144,32 @@ namespace ChatSpark.Api.Endpoints
                 return Results.NoContent();
             });
 
+
+            group.MapDelete("/{workspaceId:guid}", async (Guid workspaceId, ClaimsPrincipal principal, AppDbContext db) =>
+            {
+                var userId = Guid.Parse(principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value);
+
+                var workspace = await db.Workspaces.FindAsync(workspaceId);
+                if(workspace is null)
+                {
+                    return Results.NotFound();
+                }
+
+                if(workspace.OwnerId != userId)
+                {
+
+                    return Results.Forbid();
+                }
+
+                db.Workspaces.Remove(workspace);
+                await db.SaveChangesAsync();
+
+                return Results.NoContent();
+
+
+
+            });
+
         }
     }
 }

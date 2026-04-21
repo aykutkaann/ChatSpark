@@ -7,6 +7,7 @@ using ChatSpark.Infrastructure.Messaging;
 using ChatSpark.Infrastructure.Persistence;
 using ChatSpark.Shared.Dtos.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -32,6 +33,8 @@ JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+Directory.CreateDirectory(Path.Combine(builder.Environment.WebRootPath ?? "wwwroot", "uploads"));
 
 builder.Host.UseSerilog();
 
@@ -245,6 +248,45 @@ app.MapPatch("/api/profile", async (UpdateProfileRequest request, ClaimsPrincipa
         user.AvatarUrl, user.Bio, user.WebsiteUrl, user.CreatedAt));
 }).RequireAuthorization();
 
+
+app.UseStaticFiles();
+
+app.MapPost("/api/profile/avatar", async (IFormFile file, [FromServices] IWebHostEnvironment env) =>
+{
+    // 1. Validation: Type and Size
+    var allowedTypes = new[] { "image/jpeg", "image/png" };
+    if (!allowedTypes.Contains(file.ContentType))
+    {
+        return Results.BadRequest("Only JPEG and PNG images are allowed.");
+    }
+
+    if (file.Length > 2 * 1024 * 1024) 
+    {
+        return Results.BadRequest("File size must be under 2MB.");
+    }
+
+    var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
+    if (!Directory.Exists(uploadsFolder))
+    {
+        Directory.CreateDirectory(uploadsFolder);
+    }
+
+    var uniqueName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+    var filePath = Path.Combine(uploadsFolder, uniqueName);
+
+    using (var stream = new FileStream(filePath, FileMode.Create))
+    {
+        await file.CopyToAsync(stream);
+    }
+
+
+    var publicUrl = $"/uploads/{uniqueName}";
+
+  
+
+    return Results.Ok(new { avatarUrl = publicUrl });
+})
+.DisableAntiforgery().RequireAuthorization();
 // Apply pending EF Core migrations on startup (needed for Docker)
 using (var scope = app.Services.CreateScope())
 {

@@ -17,6 +17,7 @@ interface Props {
   onChannelDeleted: (channelId: string) => void;
   onChannelJoined: (channel: ChannelResponse) => void;
   onLeaveWorkspace: () => void;
+  onDeleteWorkspace: () => void;
   isConnected: boolean;
 }
 
@@ -29,6 +30,7 @@ export function ChannelSidebar({
   onChannelDeleted,
   onChannelJoined,
   onLeaveWorkspace,
+  onDeleteWorkspace,
   isConnected,
 }: Props) {
   const navigate = useNavigate();
@@ -94,12 +96,27 @@ export function ChannelSidebar({
             >
               ← All workspaces
             </button>
-            <button
-              className="dropdown-item dropdown-item-danger"
-              onClick={() => { setShowMenu(false); onLeaveWorkspace(); }}
-            >
-              Leave workspace
-            </button>
+            {workspace.ownerId !== user?.id && (
+              <button
+                className="dropdown-item dropdown-item-danger"
+                onClick={() => { setShowMenu(false); onLeaveWorkspace(); }}
+              >
+                Leave workspace
+              </button>
+            )}
+            {workspace.ownerId === user?.id && (
+              <button
+                className="dropdown-item dropdown-item-danger"
+                onClick={() => {
+                  setShowMenu(false);
+                  if (confirm(`Delete "${workspace.name}"? This will delete all channels and messages forever.`)) {
+                    onDeleteWorkspace();
+                  }
+                }}
+              >
+                🗑 Delete workspace
+              </button>
+            )}
           </div>
         )}
       </div>

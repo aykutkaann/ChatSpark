@@ -80,6 +80,8 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+     - uploads_data:/app/wwwroot/uploads
 
   client:
     build:
@@ -103,6 +105,7 @@ networks:
 
 
 volumes:
+  uploads_data:
   postgres_data:
   redis_data:
   rabbitmq_data:

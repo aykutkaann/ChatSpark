@@ -1,19 +1,22 @@
 import { useNavigate } from "react-router-dom";
 import type { WorkspaceResponse } from "../../types/workspace";
+import type { CurrentUser } from "../../types/auth";
 
 interface Props {
   workspaces: WorkspaceResponse[];
+  currentUser: CurrentUser | null;
   onCreateClick: () => void;
   onJoinClick: () => void;
+  onDelete: (id: string, name: string) => void;
 }
 
-export function WorkspaceList({ workspaces, onCreateClick, onJoinClick }: Props) {
+export function WorkspaceList({ workspaces, currentUser, onCreateClick, onJoinClick, onDelete }: Props) {
   const navigate = useNavigate();
 
   return (
     <div className="workspace-list-container">
       <div className="workspace-list-header">
-        <h2>Your workspaces</h2>
+        <h2>Your Workspaces</h2>
         <div className="workspace-actions">
           <button className="btn-secondary" onClick={onJoinClick}>Join</button>
           <button className="btn-primary" onClick={onCreateClick}>New workspace</button>
@@ -45,6 +48,20 @@ export function WorkspaceList({ workspaces, onCreateClick, onJoinClick }: Props)
                 <h3>{ws.name}</h3>
                 <span className="workspace-slug">{ws.slug}</span>
               </div>
+
+              {ws.ownerId === currentUser?.id && (
+                <button
+                  className="workspace-card-delete"
+                  title="Delete workspace"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(ws.id, ws.name);
+                  }}
+                >
+                  🗑
+                </button>
+              )}
+
               <div className="workspace-card-arrow">→</div>
             </div>
           ))}
