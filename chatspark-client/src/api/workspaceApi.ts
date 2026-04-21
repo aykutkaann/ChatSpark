@@ -1,5 +1,5 @@
 import api from "./axios";
-import type { CreateWorkspaceRequest, JoinWorkspaceRequest, WorkspaceResponse } from "../types/workspace";
+import type { CreateWorkspaceRequest, JoinWorkspaceRequest, WorkspaceResponse, WorkspaceMemberInfo } from "../types/workspace";
 
 export const workspaceApi = {
   getWorkspaces: () =>
@@ -14,6 +14,9 @@ export const workspaceApi = {
   leaveWorkspace: (workspaceId: string) =>
     api.post(`/api/workspaces/${workspaceId}/leave`),
 
-  deleteWorkspace: (workspaceId: string) => 
+  deleteWorkspace: (workspaceId: string) =>
     api.delete(`/api/workspaces/${workspaceId}`),
+
+  getMembers: (workspaceId: string) =>
+    api.get<WorkspaceMemberInfo[]>(`/api/workspaces/${workspaceId}/members`),
 };

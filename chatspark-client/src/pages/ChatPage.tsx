@@ -5,6 +5,7 @@ import { channelApi } from "../api/channelApi";
 import type { WorkspaceResponse } from "../types/workspace";
 import type { ChannelResponse } from "../types/channel";
 import { ChannelSidebar } from "../components/channel/ChannelSidebar";
+import { MembersPanel } from "../components/workspace/MembersPanel";
 import { MessageList } from "../components/chat/MessageList";
 import { MessageInput } from "../components/chat/MessageInput";
 import { TypingIndicator } from "../components/chat/TypingIndicator";
@@ -29,6 +30,7 @@ export function ChatPage() {
   const [channels, setChannels] = useState<ChannelResponse[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMembers, setShowMembers] = useState(false);
 
   const activeChannel = channels.find((c) => c.id === activeChannelId) ?? null;
 
@@ -151,6 +153,13 @@ export function ChatPage() {
                 <h2 className="chat-header-name">{activeChannel.name}</h2>
               </div>
               <PresenceBar onlineUsers={onlineUsers} currentUserId={user?.id ?? ""} />
+              <button
+                className={`members-toggle-btn ${showMembers ? "members-toggle-active" : ""}`}
+                onClick={() => setShowMembers((prev) => !prev)}
+                title="Show members"
+              >
+                👥 Members
+              </button>
             </div>
 
             <MessageList
@@ -178,6 +187,8 @@ export function ChatPage() {
           </div>
         )}
       </main>
+
+      <MembersPanel workspaceId={workspaceId!} isOpen={showMembers} />
     </div>
   );
 }

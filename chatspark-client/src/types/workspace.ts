@@ -14,3 +14,11 @@ export interface WorkspaceResponse {
   ownerId: string;
   createdAt: string;
 }
+
+export interface WorkspaceMemberInfo {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string;
+  role: "Owner" | "Admin" | "Member";
+  isOnline: boolean;
+}
